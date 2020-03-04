@@ -30,7 +30,7 @@ add-highlighter shared/zig/code/ regex \b(struct|enum|union)\b 0:keyword
 add-highlighter shared/zig/code/ regex \b(break|return|continue|asm|defer|errdefer|unreachable|try|catch|orelse|async|await|suspend|resume|cancel)\b 0:keyword
 add-highlighter shared/zig/code/ regex \b(if|else|switch|and|or)\b 0:keyword
 add-highlighter shared/zig/code/ regex \b(while|for)\b 0:keyword
-add-highlighter shared/zig/code/ regex \b(fn|use|test)\b 0:keyword
+add-highlighter shared/zig/code/ regex \b(fn|usingnamespace|test)\b 0:keyword
 
 add-highlighter shared/zig/code/ regex \b(bool|f32|f64|f128|void|noreturn|type|error|promise)\b 0:type
 add-highlighter shared/zig/code/ regex \b(u\d+|i\d+|isize|usize)\b 0:type
@@ -43,7 +43,7 @@ add-highlighter shared/zig/code/ regex \b0x[a-fA-F0-9]+(?:[a-fA-F0-9]+(?:[pP][+-
 add-highlighter shared/zig/code/ regex \b0o[0-7]+ 0:value # octal numeral
 add-highlighter shared/zig/code/ regex \b0b[01]+(?:.[01]\+(?:[eE][+-]?[0-9]+)?)?" 0:value # binary numeral
 
-add-highlighter shared/zig/code/ regex @(addWithOverflow|alignCast|alignOf|ArgType|atomicLoad|atomicRmw|bitCast|bitOffsetOf|boolToInt|breakpoint|bswap|bitreverse|byteOffsetOf|bytesToSlice|cDefine|cImport|cInclude|clz|cmpxchgStrong|cmpxchgWeak|compileError|compileLog|ctz|cUndef|divExact|divFloor|divTrunc|embedFile|enumToInt|errorName|errorReturnTrace|errorToInt|errSetCast|export|fence|field|fieldParentPtr|floatCast|floatToInt|frameAddress|handle|import|inlineCall|intCast|intToEnum|intToError|intToFloat|intToPtr|IntType|memberCount|memberName|memberType|memcpy|memset|mod|mulWithOverflow|newStackCall|noInlineCall|OpaqueType|panic|popCount|ptrCast|ptrToInt|rem|returnAddress|setAlignStack|setCold|setEvalBranchQuota|setFloatMode|setGlobalLinkage|setRuntimeSafety|shlExact|shlWithOverflow|shrExact|sizeOf|sliceToBytes|sqrt|subWithOverflow|tagName|TagType|This|truncate|typeId|typeInfo|typeName|typeOf|Vector)\b 0:builtin
+add-highlighter shared/zig/code/ regex @(addWithOverflow|alignCast|alignOf|as|asyncCall|atomicLoad|atomicRmw|atomicStore|bitCast|bitOffsetOf|boolToInt|bitSizeOf|breakpoint|mulAdd|byteSwap|bitReverse|byteOffsetOf|call|cDefine|cImport|cInclude|clz|cmpxchgStrong|cmpxchgWeak|compileError|compileLog|ctz|cUndef|divExact|divFloor|divTrunc|embedFile|enumToInt|errorName|errorReturnTrace|errorToInt|errSetCast|export|fence|field|fieldParentPtr|floatCast|floatToInt|frame|Frame|frameAddress|frameSize|hasDecl|hasField|import|intCast|intToEnum|intToError|intToFloat|intToPtr|memcpy|memset|mod|mulWithOverflow|OpaqueType|panic|popCount|ptrCast|ptrToInt|rem|returnAddress|setAlignStack|setCold|setEvalBranchQuota|setFloatMode|setRuntimeSafety|shlExact|shlWithOverflow|shrExact|shuffle|sizeOf|splat|sqrt|sin|cos|exp|exp2|log|log2|log10|fabs|floor|ceil|trunc|round|subWithOverflow|tagName|TagType|This|truncate|Type|typeInfo|typeName|TypeOf|unionInit|Vector)\b 0:builtin
 
 add-highlighter shared/zig/code/ regex ((\+|-|\*|<<)%?|/|=|\^|&|\?|\||!|>|<|%|>>)=? 0:operator
 add-highlighter shared/zig/code/ regex -> 0:operator
@@ -87,9 +87,14 @@ hook -group zig-highlight global WinSetOption filetype=zig %{
 
 hook global WinSetOption filetype=zig %[
     set-option buffer comment_line '//'
+    set-option buffer formatcmd 'zig fmt --stdin'
+    set-option buffer makecmd 'zig build && echo "Done."'
+
     hook -group zig-hooks window ModeChange insert:.* zig-filter-around-selections
     hook -group zig-indent window InsertChar \n zig-indent-on-new-line
     hook -group zig-indent window InsertChar \} zig-indent-on-closing-curly-brace
+
+    hook buffer BufWritePre .* %{format}
 
     hook -once -always window WinSetOption filetype=.* %{
         remove-hooks window zig-.+
